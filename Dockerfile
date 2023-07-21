@@ -1,15 +1,13 @@
-FROM node:16.17.1-alpine3.16 AS build
-WORKDIR /usr/app
-COPY . /usr/app
-RUN npm ci
+FROM node:lts-alpine as BUILD
+WORKDIR /usr/src/app
+COPY package*.json ./
+RUN npm install
+COPY . .
 RUN npm run build
 
-FROM nginx:1.23.1-alpine
-EXPOSE 3000
-COPY ./docker/nginx/conf.d/default.conf /etc/nginx/conf.d/default.conf
-COPY --from=build /usr/app/build usr/share/nginx/html
-RUN mkdir -p /var/cache/nginx/client_temp/
-RUN mkdir -p /var/cache/nginx/proxy_temp/
-RUN mkdir -p /var/cache/nginx/fastcgi_temp/
-RUN mkdir -p /var/cache/nginx/scgi_temp/
-RUN mkdir -p /var/cache/nginx/uwsgi_temp/
+FROM nginx:1.17
+COPY nginx-os4.conf /etc/nginx/nginx.conf
+WORKDIR /code
+COPY --from=BUILD /usr/src/app/build .
+EXPOSE 8080:8080
+CMD ["nginx", "-g", "daemon off;"]

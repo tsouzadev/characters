@@ -6,7 +6,7 @@ RUN npm install
 COPY . .
 RUN npm run build
 
-FROM nginx:1.17
+FROM nginx:latest
 COPY nginx-os4.conf /etc/nginx/nginx.conf
 WORKDIR /code
 COPY --from=BUILD /usr/src/app/build .
